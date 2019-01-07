@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -14,6 +16,7 @@ class TakePicture extends StatefulWidget {
 
 class _TakePictureState extends State<TakePicture> {
   File image;
+  SocketIO socketIO;
 
   void takePicture(String source) async {
     ImageSource imageSource;
@@ -37,21 +40,7 @@ class _TakePictureState extends State<TakePicture> {
       });
     }
 
-    /*IO.Socket socket = IO.io('http://192.168.133.129:3000');
-    socket.on('connect', (_) {
-      print('connect');
-      socket.emit('test');
-    });
-    socket.on('message', (data) => print(data));*/
-
-    /*SocketFlutterPlugin myIO = new SocketFlutterPlugin();
-    myIO.socket('http://10.0.0.17:3000');
-    myIO.connect();
-    myIO.on('message', (data) {
-      print(data);
-    });*/
-
-    SocketIO socketIO = SocketIOManager().createSocketIO("http://10.0.0.17:3000", "/");
+    socketIO = SocketIOManager().createSocketIO("http://10.0.0.17:3000", "/");
 
     socketIO.init();
 
@@ -67,6 +56,15 @@ class _TakePictureState extends State<TakePicture> {
         builder: (context) => StudentDetails(image: this.image)
       )
     );
+  }
+
+  void sendImage() {
+    List<int> imageBytes = this.image.readAsBytesSync();
+    String base64Image = base64Encode(imageBytes);
+
+    socketIO.sendMessage('upload', '{"image": "$base64Image"}', (){});
+
+    socketIO.disconnect();
   }
 
   @override
@@ -89,7 +87,8 @@ class _TakePictureState extends State<TakePicture> {
           children: <Widget>[
             FloatingActionButton(
                 heroTag: 1,
-                onPressed: () => takePicture('camera'),
+                // onPressed: () => takePicture('camera'),
+                onPressed: () => this.sendImage(),
                 child: Icon(Icons.camera_alt)),
             FloatingActionButton(
                 heroTag: 2,
