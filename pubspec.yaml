@@ -21,7 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   image_picker: ^0.4.10
   dio: ^1.0.9
-  socket_flutter_plugin: ^0.0.1
+  flutter_socket_io: ^0.4.5
 
 dev_dependencies:
   flutter_test:

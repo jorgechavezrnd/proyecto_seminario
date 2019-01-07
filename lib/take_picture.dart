@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_seminario/student_details.dart';
-import 'package:socket_flutter_plugin/socket_flutter_plugin.dart';
+import 'package:flutter_socket_io/flutter_socket_io.dart';
+import 'package:flutter_socket_io/socket_io_manager.dart';
 
 class TakePicture extends StatefulWidget {
   @override
@@ -43,12 +44,20 @@ class _TakePictureState extends State<TakePicture> {
     });
     socket.on('message', (data) => print(data));*/
 
-    SocketFlutterPlugin myIO = new SocketFlutterPlugin();
-    myIO.socket('http://192.168.133.129:3000');
+    /*SocketFlutterPlugin myIO = new SocketFlutterPlugin();
+    myIO.socket('http://10.0.0.17:3000');
     myIO.connect();
     myIO.on('message', (data) {
       print(data);
-    });
+    });*/
+
+    SocketIO socketIO = SocketIOManager().createSocketIO("http://10.0.0.17:3000", "/");
+
+    socketIO.init();
+
+    socketIO.subscribe("message", (data){ print('FUNCIONA!!!!!!!'); print(data); });
+
+    socketIO.connect();
   }
 
   void pushStudentsDetails(BuildContext context) {
