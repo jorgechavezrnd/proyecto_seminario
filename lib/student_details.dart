@@ -1,11 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:proyecto_seminario/models/student_model.dart';
 
-const apiUrl = 'http://192.168.133.129:8080/compare';
-const pictureUrl = 'assets/img/nobody.jpg';
+//const apiUrl = 'http://192.168.133.129:8080/compare';
+const apiUrl = 'http://192.168.133.129:3000/api/upload';
+//const pictureUrl = 'assets/img/nobody.jpg';
+const pictureUrl = 'http://192.168.133.129:3000/image1.png';
 
 class StudentDetails extends StatefulWidget {
 
@@ -21,7 +25,6 @@ class StudentDetails extends StatefulWidget {
 }
 
 class _StudentDetailsState extends State<StudentDetails> {
-
   dynamic response;
   List<StudentModel> students;
 
@@ -31,7 +34,7 @@ class _StudentDetailsState extends State<StudentDetails> {
     this.sendImage();
   }
 
-  void sendImage() {
+  /*void sendImage() {
     print('Send Image');
 
     Dio dio = new Dio();
@@ -54,6 +57,37 @@ class _StudentDetailsState extends State<StudentDetails> {
       }
 
     })).catchError((error) => print(error));
+  }*/
+
+  void sendImage() async {
+    print('Send Image');
+
+    List<int> imageBytes = widget.image.readAsBytesSync();
+    String base64Image = base64Encode(imageBytes);
+
+    Map map = {
+      'image': base64Image
+    };
+
+    HttpClient httpClient = new HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse(apiUrl));
+    request.headers.set('content-type', 'application/json');
+    request.add(utf8.encode(json.encode(map)));
+    HttpClientResponse response = await request.close();
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
+    var replyJson = jsonDecode(reply);
+
+    setState(() {
+      this.students = new List();
+
+      int tam = replyJson['students'].length;
+
+      for (int i = 0; i < tam; ++i) {
+        String name = replyJson['students'][i];
+        this.students.add(StudentModel(name: name, pictureUrl: pictureUrl));
+      }
+    });
   }
 
   @override
@@ -65,7 +99,7 @@ class _StudentDetailsState extends State<StudentDetails> {
         ),
       ),
       //body: response == null ? Center(child: CircularProgressIndicator()) : Text(this.response.data['students'].toString())
-      body: response == null ? Center(child: CircularProgressIndicator(),) : ListView.builder(
+      body: this.students == null ? Center(child: CircularProgressIndicator(),) : ListView.builder(
         itemCount: this.students.length,
         itemBuilder: (context, i) => Column(
           children: <Widget>[
@@ -76,7 +110,8 @@ class _StudentDetailsState extends State<StudentDetails> {
               leading: CircleAvatar(
                 foregroundColor: Theme.of(context).primaryColor,
                 backgroundColor: Colors.grey,
-                backgroundImage: AssetImage(this.students[i].pictureUrl),
+                // backgroundImage: AssetImage(this.students[i].pictureUrl),
+                backgroundImage: NetworkImage(pictureUrl),
               ),
               title: Text(
                 this.students[i].name,

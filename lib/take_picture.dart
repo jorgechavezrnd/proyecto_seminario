@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:proyecto_seminario/student_details.dart';
+import 'package:socket_flutter_plugin/socket_flutter_plugin.dart';
 
 class TakePicture extends StatefulWidget {
   @override
@@ -34,6 +35,20 @@ class _TakePictureState extends State<TakePicture> {
         });
       });
     }
+
+    /*IO.Socket socket = IO.io('http://192.168.133.129:3000');
+    socket.on('connect', (_) {
+      print('connect');
+      socket.emit('test');
+    });
+    socket.on('message', (data) => print(data));*/
+
+    SocketFlutterPlugin myIO = new SocketFlutterPlugin();
+    myIO.socket('http://192.168.133.129:3000');
+    myIO.connect();
+    myIO.on('message', (data) {
+      print(data);
+    });
   }
 
   void pushStudentsDetails(BuildContext context) {
